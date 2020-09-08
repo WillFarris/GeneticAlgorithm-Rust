@@ -1,9 +1,13 @@
 use crate::binarytree::BinaryTree;
 
+
+/// An `Expression` holds a 64-bit bitset representing its genome, and fields for
+/// evaluating its 
 pub struct Expression {
-    pub genome: u64,
+    genome: u64,
     pub fitness: f64,
-    pub valid_genes: Vec<u8>,
+    pub result: f64,
+    valid_genes: Vec<u8>,
     pub sequenced: Option<String>,
 }
 
@@ -14,6 +18,7 @@ impl Expression {
         Expression {
             genome,
             fitness,
+            result: 0.0,
             valid_genes: Vec::with_capacity(16),
             sequenced: None,
         }
@@ -46,8 +51,8 @@ impl Expression {
             }
         }
 
-        // for lack of time to write a better algorithm
-        let last = self.valid_genes.last().unwrap(); //temp.chars().last().unwrap();
+        // for lack of time to write a better algorithm, pop the last gene if it was an operator
+        let last = self.valid_genes.last().unwrap();
         if !(*last <= 9) {
             temp.pop();
             self.valid_genes.pop();
@@ -61,7 +66,7 @@ impl Expression {
         let symbols = &self.valid_genes;
         let root = build_tree(symbols);
         let result = sum_tree(&root);
-        println!("Expression evaluates to: {}", result);
+        self.result = result;
         self.fitness = 1.0 / (target - result);
         self
     }

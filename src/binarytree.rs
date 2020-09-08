@@ -1,4 +1,4 @@
-/// Binary Tree implementation using traits
+/// # Binary Tree implementation using traits
 /// 
 /// A binary tree holds a reference to some data and two child nodes, which can be `None` or
 /// the root of a subtree.
@@ -9,7 +9,7 @@ pub struct BinaryTree<'a, T> {
 }
 
 impl<'a, T: PartialOrd + std::fmt::Debug> BinaryTree<'a, T> {
-    pub fn new(new_val: &'a T) -> BinaryTree<T> {
+    pub fn new(new_val: &'a T) -> Self {
         BinaryTree {
             val: new_val,
             left: None,
@@ -17,6 +17,7 @@ impl<'a, T: PartialOrd + std::fmt::Debug> BinaryTree<'a, T> {
         }
     }
 
+    #[allow(dead_code)]
     pub fn insert(&mut self, new_val: &'a T) {
         let target = if new_val < self.val {&mut self.left} else {&mut self.right};
         match target {
