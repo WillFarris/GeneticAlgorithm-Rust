@@ -1,14 +1,11 @@
 use crate::binarytree::BinaryTree;
 
-
-/// An `Expression` holds a 64-bit bitset representing its genome, and fields for
-/// evaluating its 
+/// An `Expression` holds a 64-bit bitset representing its genome. 'fitness' holds the
 pub struct Expression {
     genome: u64,
     pub fitness: f64,
     pub result: f64,
-    valid_genes: Vec<u8>,
-    pub sequenced: Option<String>,
+    valid_genes: Option<Vec<u8>>,
 }
 
 impl Expression {
@@ -19,52 +16,56 @@ impl Expression {
             genome,
             fitness,
             result: 0.0,
-            valid_genes: Vec::with_capacity(16),
-            sequenced: None,
+            valid_genes: None,
         }
     }
 
     pub fn sequence(mut self) -> Self {
-        if self.sequenced != None {
+        if self.valid_genes != None {
             return self;
         }
-        
-        let mut temp = String::with_capacity(16);
-        
+
+        let mut temp = Vec::with_capacity(16);
+
         let mut prev = 0xF;
         for i in 0..16 {
-            let cur = ((self.genome >> i*4) & 0xF) as u8;
-            
-            if (cur < 0xA && prev > 0x9) || (cur > 0x9 && prev < 0xA) && cur < 0xE {
-                let cur_char = match cur {
-                    0xA => '*',
-                    0xB => '/',
-                    0xC => '+',
-                    0xD => '-',
-                    0xE..=0xF => '#', // ignored
-                    _   => (cur + 48) as char, //48 == ascii '0'
-                };
+            let cur = ((self.genome >> i * 4) & 0xF) as u8;
 
-                temp.push(cur_char);
-                self.valid_genes.push(cur);
+            if (cur < 0xA && prev > 0x9) || (cur > 0x9 && prev < 0xA) && cur < 0xE {
+                temp.push(cur);
                 prev = cur;
             }
         }
 
-        // for lack of time to write a better algorithm, pop the last gene if it was an operator
-        let last = self.valid_genes.last().unwrap();
+        // TODO: Make the algorithm better so it doesn't need this hack
+        let last = temp.last().unwrap();
         if !(*last <= 9) {
             temp.pop();
-            self.valid_genes.pop();
         }
 
-        self.sequenced = Some(temp);
+        self.valid_genes = Some(temp);
         self
+    }
+
+    pub fn expression(&self) -> String {
+        let mut result = String::with_capacity(16);
+        for c in self.valid_genes.as_ref().unwrap().iter() {
+            let cur_char: char = match c {
+                0xA => '*',
+                0xB => '/',
+                0xC => '+',
+                0xD => '-',
+                0xE..=0xF => '#',      // ignored
+                _ => (c + 48) as char, //48 == ascii '0'
+            };
+            result.push(cur_char);
+        }
+        result
     }
 
     pub fn evaulate(mut self, target: f64) -> Self {
         let symbols = &self.valid_genes;
-        let root = build_tree(symbols);
+        let root = build_tree(symbols.as_ref().unwrap());
         let result = sum_tree(&root);
         self.result = result;
         self.fitness = 1.0 / (target - result);
@@ -90,7 +91,7 @@ fn sum_tree(root: &Option<Box<BinaryTree<u8>>>) -> f64 {
 
 fn build_tree(subarray: &[u8]) -> Option<Box<BinaryTree<u8>>> {
     if subarray.len() <= 0 {
-        return None
+        return None;
     }
     let mut last_op_index = 0;
     for i in (0..subarray.len()).rev() {
@@ -102,6 +103,6 @@ fn build_tree(subarray: &[u8]) -> Option<Box<BinaryTree<u8>>> {
     Some(Box::new(BinaryTree {
         val: &subarray[last_op_index],
         left: build_tree(&subarray[0..last_op_index]),
-        right: build_tree(&subarray[last_op_index+1..subarray.len()])
+        right: build_tree(&subarray[last_op_index + 1..subarray.len()]),
     }))
 }
