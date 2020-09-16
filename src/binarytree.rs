@@ -25,8 +25,8 @@ impl<'a, T: PartialOrd + std::fmt::Debug> BinaryTree<'a, T> {
             &mut self.right
         };
         match target {
-            &mut Some(ref mut subtree) => subtree.insert(new_val),
-            &mut None => {
+            Some(ref mut subtree) => subtree.insert(new_val),
+            None => {
                 let new_binary_tree = BinaryTree::new(new_val);
                 let boxed_binary_tree = Some(Box::new(new_binary_tree));
                 *target = boxed_binary_tree;

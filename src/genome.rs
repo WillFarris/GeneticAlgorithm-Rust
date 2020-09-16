@@ -29,7 +29,7 @@ impl Expression {
 
         let mut prev = 0xF;
         for i in 0..16 {
-            let cur = ((self.genome >> i * 4) & 0xF) as u8;
+            let cur = ((self.genome >> (i * 4)) & 0xF) as u8;
 
             if (cur < 0xA && prev > 0x9) || (cur > 0x9 && prev < 0xA) && cur < 0xE {
                 temp.push(cur);
@@ -39,7 +39,7 @@ impl Expression {
 
         // TODO: Make the algorithm better so it doesn't need this hack
         let last = temp.last().unwrap();
-        if !(*last <= 9) {
+        if *last > 9 {
             temp.pop();
         }
 
@@ -80,17 +80,17 @@ fn sum_tree(root: &Option<Box<BinaryTree<u8>>>) -> f64 {
 
     let root_unwrapped = root.as_ref().unwrap();
     match *root_unwrapped.val {
-        0..=9 => return *root_unwrapped.val as f64,
-        10 => return (sum_tree(&root_unwrapped.left) * sum_tree(&root_unwrapped.right)) as f64,
-        11 => return (sum_tree(&root_unwrapped.left) / sum_tree(&root_unwrapped.right)) as f64,
-        12 => return (sum_tree(&root_unwrapped.left) + sum_tree(&root_unwrapped.right)) as f64,
-        13 => return (sum_tree(&root_unwrapped.left) - sum_tree(&root_unwrapped.right)) as f64,
-        _ => return 0.0,
+        0..=9 => *root_unwrapped.val as f64,
+        10 => (sum_tree(&root_unwrapped.left) * sum_tree(&root_unwrapped.right)) as f64,
+        11 => (sum_tree(&root_unwrapped.left) / sum_tree(&root_unwrapped.right)) as f64,
+        12 => (sum_tree(&root_unwrapped.left) + sum_tree(&root_unwrapped.right)) as f64,
+        13 => (sum_tree(&root_unwrapped.left) - sum_tree(&root_unwrapped.right)) as f64,
+        _ => 0.0,
     }
 }
 
 fn build_tree(subarray: &[u8]) -> Option<Box<BinaryTree<u8>>> {
-    if subarray.len() <= 0 {
+    if subarray.is_empty() {
         return None;
     }
     let mut last_op_index = 0;
